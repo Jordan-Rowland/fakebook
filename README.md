@@ -6,7 +6,7 @@ Todo:
   Password strength validation  
   unable to follow and ignore the same user  
   remove ability to add users to ignore/follow list twice  
-  timestamp each post(posts already collecting timestamp, just not showing)  
+  timestamp each post(posts already collecting timestamp, just not showing)*  
   pagination, showing only 10 most recent posts  
   scrolling forward and back pages  
   deleting posts  
