@@ -5,8 +5,8 @@ Non-object oriented experiment building the core mechanics of a social media pla
 Todo:  
   Password strength validation  
   Create better Users abilities:  
-      make unable to follow and ignore the same user  
-      remove ability to add users to ignore/follow list twice  
+      -make unable to follow and ignore the same user  
+      -remove ability to add users to ignore/follow list twice  
   timestamp each post(posts already collecting timestamp, just not showing)*  
   pagination, showing only 10 most recent posts  
   scrolling forward and back pages  
