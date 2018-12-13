@@ -1,13 +1,31 @@
-from box import Box
 from datetime import datetime
-# from datetime import datetime
-# '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.now())
 from random import randint as r
+
+from box import Box
+
 import userdata
 
 
 
-users, posts = userdata.init()
+def prompt_for_action():
+    while True:
+        # print(posts)
+        print('> T. Timeline')
+        print('> A. Account')
+        print('> U. Users')
+        print('> P. Post')
+        print('> O. Sign Out')
+        action = input('Select an action\n\t>>> ').strip().upper()
+        # users = userdata.users()
+        # posts = userdata.posts()
+
+        if action == 'T': return 'TIMELINE'
+        elif action == 'A': return 'ACCOUNT'
+        elif action == 'U': return 'USERS'
+        elif action == 'P': return 'POST'
+        elif action == 'O': return 'SIGN OUT'
+        else:
+            continue
 
 
 def create_account():
@@ -15,30 +33,25 @@ def create_account():
     username = input('Please enter a new username:\n>\t')
     password = input('Please enter a new password:\n>\t')
     user_id = f"{username[0]}{username[-1]}{r(1,999)}"
-    for user in users:
-        if username == user['username']:
-            print('Username is already taken.')
-            return False
-    users.append(Box({'username': username,
-                      'password': password,
-                      'user_id': user_id,
-                      'following': [],
-                      'ignoring': []}))
+    _usernames = [user.username for user in userdata.users()]
+    if username in _usernames:
+        print('Username is already taken.')
+        return False
     signed_in = Box({'username': username,
                      'password': password,
                      'user_id': user_id,
                      'following': [],
                      'ignoring': []})
+    users.append(signed_in)
     userdata._save_users()
-    # userdata._load_users()
     return signed_in
 
 
-def sign_in(username,password):
+def sign_in(username, password):
     global signed_in
     # username = input('Please enter your username:\n>\t')
     # password = input('Please enter your password:\n>\t')
-    for user in users:
+    for user in userdata.users():
         if username == user.username and password == user.password:
             signed_in = user
             print(f"Signed in as: {signed_in.username.title()}")
@@ -48,93 +61,59 @@ def sign_in(username,password):
             return False
 
 
-# Need to assign username
 def validate_posts(posts):
-    # print(posts)
-    # global _posts
     _posts = []
     for post in posts[::-1]:
         if post.user_id in signed_in.ignoring:
             continue
-        for user in users:
-            if post['user_id'] == user['user_id']:
-                if user['user_id'] in signed_in['following']:
-                    username = f"*{user['username'].title()}"
+        for user in userdata.users():
+            if post.user_id == user.user_id:
+                if user.user_id in signed_in.following:
+                    username = f"*{user.username.title()}"
                     break
-                elif post['user_id'] == user['user_id']:
-                    username = user['username'].title()
+                elif post.user_id == user.user_id:
+                    username = user.username.title()
                     break
-        text = post['text']
         _posts.append(Box({'username': username,
-                       'text': text,
-                       'post_id': post.user_id,
-                       'timestamp': post.timestamp
-                       }))
+                           'text': post.text,
+                           'post_id': post.user_id,
+                           'timestamp': post.timestamp
+                           }))
     return _posts
 
 
-def display_posts(posts):
-    # global _posts
-    print(posts)
+def display_posts(_posts,page):
     print('-' * 50)
-    for post in posts:
-        print(f"|\n|\n|{post.username}\n|\t{post.text}\n|")
-        print(f"|\n|\t\t\t\t{post.timestamp[:10]}")
+    first_post = 1
+    last_post = 6
+    for post in _posts[(first_post * page) - 1:(last_post * page) - 1]:
+        print(f"|\n|{post.username}\n|\t\t{post.text}\n|")
+        print(f"|\n|\t\t\t\t\t{post.timestamp[:10]}")
         print('-' * 50)
 
 
 def timeline(posts):
     print('Timeline:')
     _posts = validate_posts(posts)
-    display_posts(_posts)
+    display_posts(_posts,1)
 
 
 def add_post(text):
-    global signed_in
-    post_ids = [int(post.post_id) for post in posts]
-    # for post in posts:
-        # post_ids.append(int(post['post_id']))
-    new_post = {'post_id': str(max(post_ids) + 1),
+    # global signed_in
+    _max_post_id = max([int(post.post_id) for post in userdata.posts()])
+    new_post = {'post_id': str(_max_post_id + 1),
                 'text': text,
                 'user_id': signed_in['user_id'],
                 'timestamp': '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.now())}
-    # posts.append(new_post)
     return Box(new_post)
-    # userdata._save_posts(new_post)
 
 
-# def follow_ignore(username,follow_or_ignore):
-#     user_id = False
-#     for user in users:
-#         if username.lower() == user['username']:
-#             user_id = user['user_id']
-#     if user_id:
-#         if follow_or_ignore == 'follow':
-#             try:
-#                 userdata.signed_in['following'].append(user_id)
-#             except:
-#                 print('something wen\'t wrong, user not in list.')
-        
-#         elif follow_or_ignore == 'ignore':
-#             try:
-#                 userdata.signed_in['ignoring'].append(user_id)
-#             except:
-#                 print('something wen\'t wrong, user not in list.')
-        
-#         elif follow_or_ignore == 'unfollow':
-#             try:
-#                 userdata.signed_in['following'].remove(user_id)
-#             except:
-#                 print('something wen\'t wrong, user not in list.')
-        
-#         elif follow_or_ignore == 'unignore':
-#             try:
-#                 userdata.signed_in['ignoring'].remove(user_id)
-#                 userdata.signed_in
-#             except:
-#                 print('something wen\'t wrong, user not in list.')
-        
-#         else:
-#             print('Please select update type')
-#     else:
-#         print('operation failed')
+def users(users):
+    _users = [(user.username, user.user_id) for user in users]
+    print(_users)
+    # follow, ignore
+    
+
+def account(signed_in):
+    print(signed_in)
+    # change password, change username

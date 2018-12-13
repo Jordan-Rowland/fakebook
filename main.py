@@ -3,7 +3,9 @@ import userinterface
 
 
 def main():
-    users, posts = userdata.init()
+    userdata.init()
+    posts = userdata.posts()
+    users = userdata.users()
     # initializing = True
     # while initializing:
     #     try:
@@ -24,29 +26,27 @@ def main():
     signed_in = userinterface.sign_in('jordan','jr11')
 
     while True:
-        # print(posts)
-        print('> T. Timeline')
-        print('> A. Account')
-        print('> P. Post')
-        print('> U. Users')
-        print('> O. Sign Out')
-        action = input('Select an action\n\t>>>')
-        # action = action.upper()
+        # userinterface.timeline(posts)
+        action = userinterface.prompt_for_action()
 
+        if action == 'SIGN OUT':
+            userdata._save_users(users)
+            userdata._save_posts(posts)
+            break
 
-        if action.upper() == 'T':
+        elif action == 'TIMELINE':
             userinterface.timeline(posts)
-            # pass
-        elif action.upper() == 'A': pass
-        elif action.upper() == 'P':
+        
+        elif action == 'ACCOUNT':
+            userinterface.account(signed_in)
+        
+        elif action == 'USERS':
+            userinterface.users(users)
+        
+        elif action == 'POST':
             post = input('Type your post:\n\t>')
             posts.append(userinterface.add_post(post))
             userinterface.timeline(posts)
-        elif action.upper() == 'U': pass
-        elif action.upper() == 'O': 
-            userdata._save_posts(users)
-            userdata._save_posts(posts)
-            break
         
 
 if __name__ == '__main__':
