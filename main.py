@@ -1,8 +1,12 @@
+'''Main page, always run this'''
+
 import userdata
 import userinterface
 
+# If having trouble saving items, add users to account???
 
 def main():
+    '''Main function'''
     userdata.init()
     posts = userdata.posts()
     users = userdata.users()
@@ -12,21 +16,20 @@ def main():
     #         action = input('Press 1 to create a new account or 2 to \
     #                         sign into an existing account...')
     #         if int(action) == 1:
-    #             if create_account():
+    #             if create_account(users):
     #                 initializing = False
     #             else:
     #                 continue
     #         elif int(action) == 2:
-    #             if sign_in():
+    #             if sign_in(users):
     #                 initializing = False
     #             else:
     #                 continue
     #     except:
     #         print('Not a valid operation')
-    signed_in = userinterface.sign_in('jordan','jr11')
+    signed_in = userinterface.sign_in('Jordan00', 'jr11', users)
 
     while True:
-        # userinterface.timeline(posts)
         action = userinterface.prompt_for_action()
 
         if action == 'SIGN OUT':
@@ -36,18 +39,18 @@ def main():
 
         elif action == 'TIMELINE':
             userinterface.timeline(posts)
-        
+
         elif action == 'ACCOUNT':
             userinterface.account(signed_in)
-        
+
         elif action == 'USERS':
             userinterface.users(users)
-        
+
         elif action == 'POST':
             post = input('Type your post:\n\t>')
             posts.append(userinterface.add_post(post))
             userinterface.timeline(posts)
-        
+
 
 if __name__ == '__main__':
     main()
