@@ -4,9 +4,7 @@ Non-object oriented experiment building the core mechanics of a social media pla
 
 Todo:  
   Password strength validation  
-  pagination, showing only 10 most recent posts  
   scrolling forward and back pages  
   deleting posts  
-  edit number of posts per page  
   
 eventually re-create as object oriented program. 
