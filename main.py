@@ -38,7 +38,7 @@ def main():
             break
 
         elif action == 'TIMELINE':
-            userinterface.timeline(posts)
+            userinterface.timeline(posts) # PAGE NUMBER
 
         elif action == 'ACCOUNT':
             userinterface.account(signed_in)
