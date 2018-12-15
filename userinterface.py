@@ -4,6 +4,7 @@
 
 from datetime import datetime
 from random import randint as r
+from time import sleep
 
 from box import Box
 
@@ -36,22 +37,23 @@ def prompt_for_action():
 
 def create_account(users):
     '''Create new user'''
-    # global signed_in THIS MIGHT NEED TO BE ON?
     username = input('Please enter a new username:\n>\t')
     password = input('Please enter a new password:\n>\t')
-    post_count = input('How many posts would you like to see '
-                     'on your timeline?:\n>\t')
+    location = input('Enter your location:\n>\t')
+    posts_in_timeline = input('How many posts would you like to see '
+                              'on your timeline?:\n>\t')
     user_id = f"{username[0]}{username[-1]}{r(1,999)}"
-    _usernames = [user.username for user in userdata.users()]
+    _usernames = [user.username for user in users]
     if username in _usernames:
-        print('Username is already taken.') 
+        print('Username is already taken.')
         return False
     signed_in = Box({'username': username,
                      'password': password,
                      'user_id': user_id,
+                     'location': location,
                      'following': [],
                      'ignoring': [],
-                     'post_count': int(post_count)})
+                     'posts_in_timeline': int(posts_in_timeline)})
     users.append(signed_in)
     userdata._save_users(users)
     return signed_in
@@ -59,7 +61,6 @@ def create_account(users):
 
 def sign_in(username, password, users):
     '''Sign in from existing user account'''
-    global signed_in
     # username = input('Please enter your username:\n>\t')
     # password = input('Please enter your password:\n>\t')
     for user in users:
@@ -72,13 +73,13 @@ def sign_in(username, password, users):
             return False
 
 
-def validate_posts(posts):
+def validate_posts(posts, users, signed_in):
     '''Only show posts from unignored users'''
     _posts = []
     for post in reversed(posts):
         if post.user_id in signed_in.ignoring:
             continue
-        for user in userdata.users():
+        for user in users:
             if post.user_id == user.user_id:
                 if user.user_id in signed_in.following:
                     username = f"*{user.username.title()}"
@@ -94,21 +95,20 @@ def validate_posts(posts):
     return _posts
 
 
-def display_posts(_posts):
+def display_posts(_posts, signed_in):
     '''How posts are displayed in timeline'''
-    # global post_count
     print('-' * 50)
-    for post in _posts[:signed_in.post_count]:
+    for post in _posts[:signed_in.posts_in_timeline]:
         print(f"|\n|{post.username}\n|\t\t{post.text}\n|")
         print(f"|\n|\t\t\t\t\t{post.timestamp[:10]}")
         print('-' * 50)
 
 
-def timeline(posts):
+def timeline(users, posts, signed_in):
     '''Display timeline'''
     print('Timeline:')
-    _posts = validate_posts(posts)
-    display_posts(_posts)
+    _posts = validate_posts(posts, users, signed_in)
+    display_posts(_posts, signed_in)
 
 
 def add_post(text):
@@ -121,7 +121,7 @@ def add_post(text):
     return Box(new_post)
 
 
-def users(users):
+def users(users, signed_in):
     '''users page'''
     _users = [(user.username, user.user_id) for user in users]
 
@@ -154,22 +154,23 @@ def users(users):
 
             if selected_user_id in following:
                 signed_in.following.remove(selected_user_id)
-                print(f'=====\n{selected_user.title()} unfollowed!\n')
+                print(f'=====\n{selected_user.title()} unfollowed!')
             elif selected_user_id in ignoring:
                 print('=====\n')
                 print('You cannot follow a user you are ignoring. '
                       'Unignore this user before following them.')
             else:
                 signed_in.following.append(selected_user_id)
-                print(f'=====\nNow following {selected_user.title()}!\n')
+                print(f'=====\n\nNow following {selected_user.title()}!')
+                sleep(1)
 
         elif action == 'I':
-            selected_user = input('Select a user to follow '
-                                  'or unfollow\n\t>>> ').strip().lower()
+            selected_user = input('Select a user to ignore '
+                                  'or unignore\n\t>>> ').strip().lower()
 
             if selected_user not in [user[0].lower() for user in _users]:
                 print('This user does not exist.')
-                break
+                continue
 
             selected_user_id = [user[1] for user in _users if
                                 selected_user == user[0]][0]
@@ -180,10 +181,11 @@ def users(users):
                       'Unfollow this user before ignoring them.')
             elif selected_user_id in ignoring:
                 signed_in.ignoring.remove(selected_user_id)
-                print(f'=====\n{selected_user.title()} unignored!\n')
+                print(f'=====\n{selected_user.title()} unignored!')
             else:
                 signed_in.ignoring.append(selected_user_id)
-                print(f'=====\nNow ignoring {selected_user.title()}!\n')
+                print(f'=====\n\nNow ignoring {selected_user.title()}!')
+                sleep(1)
 
         elif action == 'B':
             break
@@ -191,10 +193,8 @@ def users(users):
 
 def account(signed_in):
     '''account page'''
-    # global post_count
     while True:
-        print(f'Username: {signed_in.username}')
-        print('MORE DATA')
+        print(f'Username: {signed_in.username} - {signed_in.location}')
         print('U. Change Username')
         print('P. Change Password')
         print('T. Timeline Post Count')
@@ -210,8 +210,9 @@ def account(signed_in):
             signed_in.username = new_username
             print('Username Changed!')
         elif action == 'T':
-            post_count = input("Enter the amount of posts "
-                               "you'd like to see on your timeline.\n>>> ").strip()
-            signed_in.post_count = int(post_count)
+            posts_in_timeline = input("Enter the amount of posts "
+                                      "you'd like to see on "
+                                      "your timeline.\n>>> ").strip()
+            signed_in.posts_in_timeline = int(posts_in_timeline)
         elif action == 'B':
             break

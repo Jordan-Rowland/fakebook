@@ -7,9 +7,7 @@ import userinterface
 
 def main():
     '''Main function'''
-    userdata.init()
-    posts = userdata.posts()
-    users = userdata.users()
+    users, posts = userdata.init()
     # initializing = True
     # while initializing:
     #     try:
@@ -38,18 +36,18 @@ def main():
             break
 
         elif action == 'TIMELINE':
-            userinterface.timeline(posts) # PAGE NUMBER
+            userinterface.timeline(users, posts, signed_in)
 
         elif action == 'ACCOUNT':
             userinterface.account(signed_in)
 
         elif action == 'USERS':
-            userinterface.users(users)
+            userinterface.users(users, signed_in)
 
         elif action == 'POST':
             post = input('Type your post:\n\t>')
             posts.append(userinterface.add_post(post))
-            userinterface.timeline(posts)
+            userinterface.timeline(users, posts, signed_in)
 
 
 if __name__ == '__main__':
