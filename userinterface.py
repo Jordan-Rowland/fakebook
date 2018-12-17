@@ -33,10 +33,9 @@ def prompt_for_action():
 
         if action.isdigit():
             return action
-        elif action in options.keys():
+        if action in options.keys():
             return options[action]
-        else:
-            continue
+        continue
 
         # if action == 'T': return 'TIMELINE'
         # elif action == 'A': return 'ACCOUNT'
@@ -71,7 +70,7 @@ def create_account(users_):
                      'ignoring': [],
                      'posts_in_timeline': int(posts_in_timeline)})
     users_.append(signed_in)
-    userdata.save_users(users)
+    userdata.save_users(users_)
     return signed_in
 
 ###### REMOVE USERNAME AND PASSWORD ARGUMENTS WHEN DONE TESTING
@@ -84,9 +83,8 @@ def sign_in(username, password, users_):
             signed_in = user
             print(f"Signed in as: {signed_in.username.title()}")
             return signed_in
-        else:
-            print('Please sign in as a valid user or create a new account!')
-            return False
+        print('Please sign in as a valid user or create a new account!')
+        return False
 
 
 def validate_posts(posts, users_, signed_in):
@@ -117,7 +115,7 @@ def display_posts(_posts, signed_in, page_num):
     end_post = signed_in.posts_in_timeline * page_num
     print('-' * 50)
     _posts = _posts[start_post:end_post]
-    if len(_posts) == 0:
+    if not _posts:
         print(f'No posts on page {page_num}. Please go back a page.')
     else:
         for post in _posts:
@@ -176,6 +174,7 @@ def select_user(follow_or_ignore_, users_):
         selected_user_id = [user.user_id for user in users_ if
                             selected_user == user.username][0]
         return selected_user_id, selected_user
+    return False
 
 
 def add_remove_user(selected_user_id, list_, second_list_, selected_user, action):
@@ -200,29 +199,30 @@ def follow_or_ignore(users_, list_, second_list_, action):
     if selected_user:
         add_remove_user(selected_user_id, list_, second_list_,
                         selected_user, action)
-        return True
+        # return True
 
 
 def user_profile(users_):
+    '''Return a profile for any user'''
     username = input('Enter the username of the user you would like to view\n\t>>> ')
     user = [user for user in users_ if username == user.username][0]
     sleep(1)
     following = [friend.username for friend in users_
                  if friend.user_id in user.following]
     ignoring = [friend.username for friend in users_
-                 if friend.user_id in user.ignoring]
+                if friend.user_id in user.ignoring]
     print('\n=====\n')
     print(f'Username: {user.username.title()}')
     print(f'Location: {user.location}\n\n')
     print(f'Bio: {user.biography}')
     print('Following: ')
-    if len(following) != 0:
+    if not following:
         for followed_user in following:
             print(f'\t{followed_user.title()}')
     else:
         print('\tNot following any users.')
     print('Ignoring: ')
-    if len(ignoring) != 0:
+    if not ignoring:
         for followed_user in ignoring:
             print(f'\t{followed_user.title()}')
     else:
@@ -255,9 +255,13 @@ def users_page(users_, signed_in):
             print('Please enter a valid option')
 
 
-def new_password_username(password_or_username, parameter):
+def new_password_username(parameter, signed_in):
+    '''Update username or password for signed in user'''
     new_parameter = input(f'Type a new {parameter}\n\t>>> ')
-    password_or_username = new_parameter
+    if parameter == 'password':
+        signed_in.password = new_parameter
+    elif parameter == 'username':
+        signed_in.username = new_parameter
     print(f'{parameter.title()} Changed!')
     sleep(1)
 
@@ -274,9 +278,9 @@ def account(signed_in, posts):
         action = input('Select an action\n\t>>> ').strip().upper()
 
         if action == 'P':
-            new_password_username(signed_in.password, 'password')
+            new_password_username('password', signed_in)
         elif action == 'U':
-            new_password_username(signed_in.username, 'username')
+            new_password_username('username', signed_in)
         elif action == 'T':
             print(f'Currently viewing {signed_in.posts_in_timeline} post(s) per page.')
             sleep(1)
