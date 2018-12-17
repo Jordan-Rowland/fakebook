@@ -5,16 +5,18 @@ import userinterface
 
 # If having trouble saving items, add users to account???
 
+
 def main():
     '''Main function'''
     users, posts = userdata.init()
     # initializing = True
     # while initializing:
     #     try:
-    #         action = input('Press 1 to create a new account or 2 to \
-    #                         sign into an existing account...')
+    #         action = input('Press 1 to create a new account or 2 to '
+    #                        'sign into an existing account... > ')
     #         if int(action) == 1:
-    #             if create_account(users):
+    #             signed_in = create_account(users)
+    #             if signed_in:
     #                 initializing = False
     #             else:
     #                 continue
@@ -25,29 +27,39 @@ def main():
     #                 continue
     #     except:
     #         print('Not a valid operation')
+
+
     signed_in = userinterface.sign_in('Jordan00', 'jr11', users)
+    userinterface.timeline(users, posts, signed_in, 1)
 
     while True:
+        # Timeline, add page view
         action = userinterface.prompt_for_action()
 
         if action == 'SIGN OUT':
-            userdata._save_users(users)
-            userdata._save_posts(posts)
+            userdata.save_users(users)
+            userdata.save_posts(posts)
             break
 
         elif action == 'TIMELINE':
-            userinterface.timeline(users, posts, signed_in)
+            userinterface.timeline(users, posts, signed_in, 1)
+
+        elif action.isdigit():
+            action = int(action)
+            userinterface.timeline(users, posts, signed_in, action)
 
         elif action == 'ACCOUNT':
-            userinterface.account(signed_in)
+            userinterface.account(signed_in, posts)
+            userinterface.timeline(users, posts, signed_in, 1)
 
         elif action == 'USERS':
-            userinterface.users(users, signed_in)
+            userinterface.users_page(users, signed_in)
+            userinterface.timeline(users, posts, signed_in, 1)
 
         elif action == 'POST':
             post = input('Type your post:\n\t>')
-            posts.append(userinterface.add_post(post))
-            userinterface.timeline(users, posts, signed_in)
+            posts.append(userinterface.add_post(post, posts, signed_in))
+            userinterface.timeline(users, posts, signed_in, 1)
 
 
 if __name__ == '__main__':
