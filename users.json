@@ -3,18 +3,17 @@
         "biography": "I built this app!\n\n",
         "following": [
             "bm123",
-            "fl123",
-            "jk123"
+            "fl123"
         ],
         "ignoring": [
-            "rb123",
             [
                 "jk123"
-            ]
+            ],
+            "jk123"
         ],
         "location": "Los Angeles",
         "password": "jr11",
-        "posts_in_timeline": 4,
+        "posts_in_timeline": 3,
         "user_id": "jr123",
         "username": "Jordan00"
     },

@@ -14,7 +14,6 @@ import userdata
 def prompt_for_action():
     '''Prompt for action, main loop for program'''
     while True:
-        # makes this timeline default, and timeline selection will select page number
         print('\n=====\n')
         print('> (#) Timeline Page')
         print('> (A) Account')
@@ -22,28 +21,17 @@ def prompt_for_action():
         print('> (P) Post')
         print('> (O) Sign Out')
         action = input('Select an action\n\t>>> ').strip().upper()
-        # users = userdata.users()
-        # posts = userdata.posts()
 
-        options = {'A': 'ACCOUNT',
+        options = {'A': 'ACCOUNT SETTINGS',
                    'U': 'USERS',
                    'P': 'POST',
                    'O': 'SIGN OUT'}
-
 
         if action.isdigit():
             return action
         if action in options.keys():
             return options[action]
         continue
-
-        # if action == 'T': return 'TIMELINE'
-        # elif action == 'A': return 'ACCOUNT'
-        # elif action == 'U': return 'USERS'
-        # elif action == 'P': return 'POST'
-        # elif action == 'O': return 'SIGN OUT'
-        # else:
-        #     continue
 
 
 def create_account(users_):
@@ -59,8 +47,9 @@ def create_account(users_):
         print('Invalid password')
         return False
     location = input('Enter your location:\n>\t')
-    posts_in_timeline = input('How many posts would you like to see '
-                              'on your timeline?:\n>\t')
+    print('How many posts would you like to see')
+    posts_in_timeline = input('\t>>> ')
+
     user_id = f"{username[0]}{username[-1]}{r(1,999)}" # create user ID
     signed_in = Box({'username': username,
                      'password': password,
@@ -86,7 +75,7 @@ def sign_in(username, password, users_):
         print('Please sign in as a valid user or create a new account!')
         return False
 
-
+### TIMELINE
 def validate_posts(posts, users_, signed_in):
     '''Only show posts from unignored users'''
     _posts = []
@@ -127,10 +116,10 @@ def display_posts(_posts, signed_in, page_num):
 def timeline(users_, posts, signed_in, page_num):
     '''Display timeline'''
     print(f'Timeline: page {page_num}')
-    _posts = validate_posts(posts, users_, signed_in) # This might need to go back to
-    display_posts(_posts, signed_in, page_num)                  # users argument
+    _posts = validate_posts(posts, users_, signed_in)
+    display_posts(_posts, signed_in, page_num)
 
-
+### ADD POST
 def add_post(text, posts, signed_in):
     '''Add new post'''
     _max_post_id = max([post.post_id for post in posts])
@@ -140,7 +129,7 @@ def add_post(text, posts, signed_in):
                 'timestamp': '{0:%Y-%m-%d %H:%M:%S}'.format(datetime.now())}
     return Box(new_post)
 
-
+### USERS PAGE
 def display_users(users_, following, ignoring):
     '''Display users and user relations'''
     print('\n=====\n')
@@ -155,78 +144,172 @@ def display_users(users_, following, ignoring):
     sleep(1)
 
 
-
 def validate_user(users_, selected_user):
     '''Check for valid selected user'''
-    if selected_user not in [user.username.lower() for user in users_]:
-        print('This user does not exist.')
-        sleep(1)
-        return False
-    return True
-
-
-def select_user(follow_or_ignore_, users_):
-    '''Select user'''
-    prompt_for_user = f'''Select the user you would like to
-{follow_or_ignore_} or un{follow_or_ignore_}\n\t>>> '''
-    selected_user = input(prompt_for_user).strip().lower()
-    if validate_user(users_, selected_user):
-        selected_user_id = [user.user_id for user in users_ if
-                            selected_user == user.username][0]
-        return selected_user_id, selected_user
+    if selected_user.lower() in [user.username.lower() for user in users_]:
+        return True
+    print('This user does not exist.')
+    sleep(1)
     return False
 
 
-def add_remove_user(selected_user_id, list_, second_list_, selected_user, action):
+def select_user(users_, message):
+    print(message)
+    selected_user = input('\t>>> ').strip().lower()
+    if validate_user(users_, selected_user):
+        return user
+    return False
+
+
+def add_remove_user(user, list_, second_list_, message):
     '''Add or remove user from follow or ignore list'''
-    if selected_user_id in second_list_:
-        print('''User cannot be ignored and followed at the same time.\n
-Remove this user from one of these lists to continue. ''')
-    elif selected_user_id in list_:
-        list_.remove(selected_user_id)
-        print(f'=====\nNow un{action[:-1] if action.endswith("e") else action}ing '
-              f'{selected_user.title()}.') # Print following or ignoring
+    if user.user_id in second_list_:
+        print('User cannot be ignored and followed at the same time.\n'
+              'Remove this user from one of these lists to continue. ')
+    elif user.user_id in list_:
+        list_.remove(user.user_id)
+        print(f'=====\n{message}{user.username.title()}.')
     else:
-        list_.append(selected_user_id)
-        print(f'=====\nNow {action[:-1] if action.endswith("e") else action}ing '
-              f'{selected_user.title()}.') # Print following or ignoring
+        list_.append(user.user_id)
+        print(f'=====\n{message}{user.username.title()}.')
     sleep(1)
 
 
-def follow_or_ignore(users_, list_, second_list_, action):
+def follow_or_ignore(users_, list_, second_list_, message, confirmation_message):
     '''Over all meta-function for following, ignoring'''
-    selected_user_id, selected_user = select_user(action, users_)
+    user = select_user(users_, message)
     if selected_user:
-        add_remove_user(selected_user_id, list_, second_list_,
-                        selected_user, action)
-        # return True
+        add_remove_user(user, list_, second_list_, confirmation_message)
 
 
-def user_profile(users_):
+#######################################################
+#####       TEST REFACTOR       #####
+#######################################################
+
+
+def prompt_for_user_profile(users_):
     '''Return a profile for any user'''
-    username = input('Enter the username of the user you would like to view\n\t>>> ')
-    user = [user for user in users_ if username == user.username][0]
-    sleep(1)
-    following = [friend.username for friend in users_
-                 if friend.user_id in user.following]
-    ignoring = [friend.username for friend in users_
-                if friend.user_id in user.ignoring]
+    print('Enter the username of the user you would like to view')
+    username = input('\t>>> ')
+    if validate_user(users_, username):
+        user = [user for user in users_ if username.lower() == user.username.lower()][0]
+        user_following = [friend.username for friend in users_
+                     if friend.user_id in user.following]
+        user_ignoring = [friend.username for friend in users_
+                    if friend.user_id in user.ignoring]
+        return user, user_following, user_ignoring
+
+
+# in Whie loop
+def displey_user_profile(signed_in, user, user_following, user_ignoring):
     print('\n=====\n')
-    print(f'Username: {user.username.title()}')
-    print(f'Location: {user.location}\n\n')
+    if user.user_id in signed_in.following:
+        print(f'Username: {user.username.title()} - Following')
+    elif user.user_id in signed_in.ignoring:
+        print(f'Username: {user.username.title()} - Ignoring')
+    else:
+        print(f'Username: {user.username.title()}')
+
+    print(f'Location: {user.location}\n')
     print(f'Bio: {user.biography}')
     print('Following: ')
-    if not following:
+    if following:
         for followed_user in following:
             print(f'\t{followed_user.title()}')
     else:
         print('\tNot following any users.')
     print('Ignoring: ')
-    if not ignoring:
+    if ignoring:
         for followed_user in ignoring:
             print(f'\t{followed_user.title()}')
     else:
         print('\tNot ignoring any users')
+
+# in Whie loop
+def prompt_for_profile_action(user, signed_in):
+    '''Return a profile for any user'''
+    print('(F) Follow or unfollow this user')
+    print('(I) Ignore or unignore this user')
+    print('(B) Back')
+    print(user.username.title())
+    action = input('>>> ').strip().upper()
+
+    if action == 'B':
+        break
+
+    elif action == 'F':
+        add_remove_user(user.user_id, signed_in.following,
+                        signed_in.ignoring, user.username, 'follow')
+
+    elif action == 'I':
+        add_remove_user(user.user_id, signed_in.ignoring,
+                        signed_in.following, user.username, 'ignore')
+
+
+def user_profile(users, signed_in):
+    user, user_following, user_ignoring = prompt_for_user_profile(users_)
+    while True:
+        displey_user_profile(signed_in, user, user_following, user_ignoring)
+        prompt_for_profile_action(user, signed_in)
+
+
+#######################################################
+#####       END TEST REFACTOR
+#######################################################
+
+
+# def user_profile(users_, signed_in):
+#     '''Return a profile for any user'''
+#     print('Enter the username of the user you would like to view')
+#     username = input('\t>>> ')
+#     if validate_user(users_, username):
+#         user = [user for user in users_ if username.lower() == user.username.lower()][0]
+#         sleep(1)
+#         following = [friend.username for friend in users_
+#                      if friend.user_id in user.following]
+#         ignoring = [friend.username for friend in users_
+#                     if friend.user_id in user.ignoring]
+
+#         while True:
+#             print('\n=====\n')
+#             if user.user_id in signed_in.following:
+#                 print(f'Username: {user.username.title()} - Following')
+#             elif user.user_id in signed_in.ignoring:
+#                 print(f'Username: {user.username.title()} - Ignoring')
+#             else:
+#                 print(f'Username: {user.username.title()}')
+
+#             print(f'Location: {user.location}\n')
+#             print(f'Bio: {user.biography}')
+#             print('Following: ')
+#             if following:
+#                 for followed_user in following:
+#                     print(f'\t{followed_user.title()}')
+#             else:
+#                 print('\tNot following any users.')
+#             print('Ignoring: ')
+#             if ignoring:
+#                 for followed_user in ignoring:
+#                     print(f'\t{followed_user.title()}')
+#             else:
+#                 print('\tNot ignoring any users')
+
+#             print('(F) Follow or unfollow this user')
+#             print('(I) Ignore or unignore this user')
+#             print('(B) Back')
+#             print(user.username.title())
+#             action = input('>>> ').strip().upper()
+
+#             if action == 'B':
+#                 break
+
+#             elif action == 'F':
+#                 add_remove_user(user.user_id, signed_in.following,
+#                                 signed_in.ignoring, user.username, 'follow')
+
+#             elif action == 'I':
+#                 add_remove_user(user.user_id, signed_in.ignoring,
+#                                 signed_in.following, user.username, 'ignore')
 
 
 def users_page(users_, signed_in):
@@ -237,13 +320,14 @@ def users_page(users_, signed_in):
         print('(F) Follow or unfollow user')
         print('(I) Ignore or unignore user')
         print('(B) Back')
-        action = input('Select an action\n\t>>> ').strip().upper()
+        print('Select an action')
+        action = input('\t>>> ').strip().upper()
 
         if action == 'B':
             break
 
         elif action == 'P':
-            user_profile(users_)
+            user_profile(users_, signed_in)
 
         elif action == 'F':
             follow_or_ignore(users_, signed_in.following, signed_in.ignoring, 'follow')
@@ -255,6 +339,11 @@ def users_page(users_, signed_in):
             print('Please enter a valid option')
 
 
+
+
+
+
+### ACCOUNT
 def new_password_username(parameter, signed_in):
     '''Update username or password for signed in user'''
     new_parameter = input(f'Type a new {parameter}\n\t>>> ')
@@ -284,8 +373,10 @@ def account(signed_in, posts):
         elif action == 'T':
             print(f'Currently viewing {signed_in.posts_in_timeline} post(s) per page.')
             sleep(1)
-            posts_in_timeline = input('''Enter the amount of posts you'd like to
-see on your timeline(Please enter a positive integer value).\n>>> ''').strip()
+            print("Enter the amount of posts you'd like to see on your "
+                  "timeline(Please enter a positive integer value).")
+            posts_in_timeline = input('\n>>> ').strip()
+
             if posts_in_timeline.isdigit():
                 signed_in.posts_in_timeline = int(posts_in_timeline)
             else:

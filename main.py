@@ -48,7 +48,7 @@ def main():
             action = int(action)
             userinterface.timeline(users, posts, signed_in, action)
 
-        elif action == 'ACCOUNT':
+        elif action == 'ACCOUNT SETTINGS':
             userinterface.account(signed_in, posts)
             userinterface.timeline(users, posts, signed_in, 1)
 

@@ -50,7 +50,6 @@ def _load_users():
             _users = json.loads(file.read())
     else:
         _users = []
-
     return _users
 
 
