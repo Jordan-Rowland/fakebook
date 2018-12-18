@@ -4,6 +4,5 @@ Non-object oriented experiment building the core mechanics of a social media pla
 
 Todo:  
   -deleting posts  
-  -follow/ignore user from user profile page  
   
 eventually re-create as object oriented program. 
