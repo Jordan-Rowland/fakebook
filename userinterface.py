@@ -153,33 +153,37 @@ def validate_user(users_, selected_user):
     return False
 
 
-def select_user(users_, message):
-    print(message)
+def select_user(users_, action):
+    prompt_for_user = print(f'Select the user you would like to '
+        f'{action} or un{action}')
     selected_user = input('\t>>> ').strip().lower()
     if validate_user(users_, selected_user):
+        user = [user for user in users_ if selected_user == user.username][0]
         return user
     return False
 
 
-def add_remove_user(user, list_, second_list_, message):
+def add_remove_user(user, list_, second_list_, action):
     '''Add or remove user from follow or ignore list'''
     if user.user_id in second_list_:
         print('User cannot be ignored and followed at the same time.\n'
               'Remove this user from one of these lists to continue. ')
     elif user.user_id in list_:
         list_.remove(user.user_id)
-        print(f'=====\n{message}{user.username.title()}.')
+        print(f'=====\nNow un{action[:-1] if action.endswith("e") else action}ing '
+              f'{user.username.title()}.')
     else:
         list_.append(user.user_id)
-        print(f'=====\n{message}{user.username.title()}.')
+        print(f'=====\nNow {action[:-1] if action.endswith("e") else action}ing '
+              f'{user.username.title()}.')
     sleep(1)
 
 
-def follow_or_ignore(users_, list_, second_list_, message, confirmation_message):
+def follow_or_ignore(users_, list_, second_list_, action):
     '''Over all meta-function for following, ignoring'''
-    user = select_user(users_, message)
-    if selected_user:
-        add_remove_user(user, list_, second_list_, confirmation_message)
+    user = select_user(users_, action)
+    if user:
+        add_remove_user(user, list_, second_list_, action)
 
 
 #######################################################
@@ -235,7 +239,7 @@ def prompt_for_profile_action(user, signed_in):
     action = input('>>> ').strip().upper()
 
     if action == 'B':
-        break
+        return
 
     elif action == 'F':
         add_remove_user(user.user_id, signed_in.following,
@@ -256,60 +260,6 @@ def user_profile(users, signed_in):
 #######################################################
 #####       END TEST REFACTOR
 #######################################################
-
-
-# def user_profile(users_, signed_in):
-#     '''Return a profile for any user'''
-#     print('Enter the username of the user you would like to view')
-#     username = input('\t>>> ')
-#     if validate_user(users_, username):
-#         user = [user for user in users_ if username.lower() == user.username.lower()][0]
-#         sleep(1)
-#         following = [friend.username for friend in users_
-#                      if friend.user_id in user.following]
-#         ignoring = [friend.username for friend in users_
-#                     if friend.user_id in user.ignoring]
-
-#         while True:
-#             print('\n=====\n')
-#             if user.user_id in signed_in.following:
-#                 print(f'Username: {user.username.title()} - Following')
-#             elif user.user_id in signed_in.ignoring:
-#                 print(f'Username: {user.username.title()} - Ignoring')
-#             else:
-#                 print(f'Username: {user.username.title()}')
-
-#             print(f'Location: {user.location}\n')
-#             print(f'Bio: {user.biography}')
-#             print('Following: ')
-#             if following:
-#                 for followed_user in following:
-#                     print(f'\t{followed_user.title()}')
-#             else:
-#                 print('\tNot following any users.')
-#             print('Ignoring: ')
-#             if ignoring:
-#                 for followed_user in ignoring:
-#                     print(f'\t{followed_user.title()}')
-#             else:
-#                 print('\tNot ignoring any users')
-
-#             print('(F) Follow or unfollow this user')
-#             print('(I) Ignore or unignore this user')
-#             print('(B) Back')
-#             print(user.username.title())
-#             action = input('>>> ').strip().upper()
-
-#             if action == 'B':
-#                 break
-
-#             elif action == 'F':
-#                 add_remove_user(user.user_id, signed_in.following,
-#                                 signed_in.ignoring, user.username, 'follow')
-
-#             elif action == 'I':
-#                 add_remove_user(user.user_id, signed_in.ignoring,
-#                                 signed_in.following, user.username, 'ignore')
 
 
 def users_page(users_, signed_in):
@@ -337,10 +287,6 @@ def users_page(users_, signed_in):
 
         else:
             print('Please enter a valid option')
-
-
-
-
 
 
 ### ACCOUNT
@@ -388,3 +334,9 @@ def account(signed_in, posts):
             sleep(1)
         elif action == 'B':
             break
+
+
+# def account_page
+    #while True:
+        # def prompt_for_account_settings
+        # def show_own_posts
