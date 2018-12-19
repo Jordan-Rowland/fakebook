@@ -58,5 +58,17 @@
         "text": "your mom!",
         "timestamp": "2018-11-10 04:21:47",
         "user_id": "jr123"
+    },
+    {
+        "post_id": 11,
+        "text": "TEST!",
+        "timestamp": "2018-12-19 05:41:43",
+        "user_id": "jr123"
+    },
+    {
+        "post_id": 12,
+        "text": "timeline page test",
+        "timestamp": "2018-12-19 05:49:45",
+        "user_id": "jr123"
     }
 ]
