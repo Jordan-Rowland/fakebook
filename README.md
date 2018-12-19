@@ -4,5 +4,7 @@ Non-object oriented experiment building the core mechanics of a social media pla
 
 Todo:  
   -deleting posts  
+  -port JSON data storage to SQLITE
+  -insert lots of fake data
   
 eventually re-create as object oriented program. 
