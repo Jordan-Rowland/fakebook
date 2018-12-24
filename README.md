@@ -6,4 +6,3 @@ Todo:
   -deleting posts  
   -insert lots of fake data(in progress)  
   
-eventually re-create as object oriented program. 
