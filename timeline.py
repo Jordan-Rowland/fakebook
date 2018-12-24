@@ -1,7 +1,7 @@
-# from itertools import islice
-from datetime import datetime
+"""Module to handle all details related to Timeline view"""
+
 import itertools
-from math import floor
+# from math import floor
 
 from box import Box
 
@@ -9,8 +9,7 @@ import userdata
 
 ### TIMELINE
 def prompt_for_action():
-    """Prompt for action, main loop for program
-    """
+    """Prompt for action, main loop for program"""
     while True:
         print('\n=====\n')
         print('> (#) Timeline Page')
@@ -33,15 +32,8 @@ def prompt_for_action():
 
 
 def validate_posts(con, signed_in):
-    """Only show posts from unignored users
-    """
+    """Only show posts from unignored users"""
     c = con.cursor()
-
-    # ignoring_query = userdata.ignoring_iter(con, signed_in)
-    # ignoring_list = [i[0] for i in ignoring_query]
-
-    # ignoring_list = tuple(ignoring_list)
-    # if ignoring_list:
     query = c.execute('''SELECT p.user_id, username, text, timestamp
                          FROM posts p
                          INNER JOIN users u on u.user_id = p.user_id
@@ -66,7 +58,7 @@ def display_posts(query, con, signed_in, page_num):
 
     following_query = userdata.following_iter(con, signed_in)
 
-    following_list = [i[0] for i in following_query]
+    following_list = (i[0] for i in following_query)
 
     if page_num > 0:
         start_post = signed_in.posts_per_page * (page_num - 1)
