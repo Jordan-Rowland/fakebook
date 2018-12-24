@@ -19,8 +19,6 @@ def main():
     con = userdata.init()
 
 
-
-
     # initializing = True
     # while initializing:
     #     try:
@@ -52,8 +50,6 @@ def main():
         action = timeline.prompt_for_action()
 
         if action == 'SIGN OUT':
-            # userdata.save_users(users)
-            # userdata.save_posts(posts)
             con.close()
             break
 
@@ -81,7 +77,7 @@ def main():
         elif action == 'POST':
             post = input('Type your post:\n\t>')
             # posts.append(timeline.add_post(post, con, signed_in))
-            timeline.add_post(con, post, signed_in)
+            userdata.add_post(con, post, signed_in)
             timeline.timeline(con, signed_in, 1)
 
 
