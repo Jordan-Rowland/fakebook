@@ -34,7 +34,8 @@ def prompt_for_action():
 def validate_posts(con, signed_in):
     """Only show posts from unignored users"""
     c = con.cursor()
-    query = c.execute('''SELECT p.user_id, username, text, timestamp
+    query = c.execute('''SELECT p.user_id, p.post_id,
+                         username, text, timestamp
                          FROM posts p
                          INNER JOIN users u on u.user_id = p.user_id
                          WHERE p.user_id NOT IN
@@ -43,12 +44,11 @@ def validate_posts(con, signed_in):
                                     WHERE ignoring_id = ?
                                 )
                          ORDER BY p.post_id desc''', (signed_in.user_id, ))
-
     # c.close()
     return query
 
 
-def display_posts(query, con, signed_in, page_num):
+def display_posts(query, con, signed_in, page_num, post_id_show=False):
     """Display posts in a pretty format. Posts are based on page number
     and and number of posts per page in user timeline. This function
     uses a generator and islice from itertools to return a slice of
@@ -79,6 +79,8 @@ def display_posts(query, con, signed_in, page_num):
                 print(f"|\n|*{post.username.title()}\n|\t\t{post.text}\n|")
             else:
                 print(f"|\n|{post.username.title()}\n|\t\t{post.text}\n|")
+            if post_id_show:
+                print(f'|Post ID: {post.post_id}')
             print(f"|\n|\t\t\t\t\t{post.timestamp[:10]}")
             print('-' * 50)
     c.close()

@@ -5,13 +5,47 @@ from time import sleep
 from box import Box
 
 import timeline
+import userdata
+
+
+def create_account(con):
+    """Create new account"""
+    c = con.cursor()
+    print('Please enter a new username: ')
+    username = input('\t>>> ')
+    users = [user[1] for user in userdata.user_iter(con)]
+    print(users)
+    if username in users:
+        return False
+    ('Please enter a new password: ')
+    password = input('\t>>> ')
+    if not any(x.isupper for x in password) or not any(x.islower for x in password)\
+    or not any(x.isdigit for x in password) or len(password) < 8: # Validate password
+        print('Invalid password')
+        return False
+    print('Enter your location: ')
+    location = input('\t>>> ')
+    print('How many posts would you like to see')
+    posts_in_timeline = input('\t>>> ')
+    user_id = f'{username[0]}{username[-1]}{r(999,99999)}' # Create user ID
+    signed_in = Box({'user_id': user_id,
+                     'username': username,
+                     'password': password,
+                     'location': location,
+                     'posts_per_page': int(posts_in_timeline)})
+    signed_in_tuple = tuple(dict(signed_in).values())
+    print(signed_in_tuple)
+    c.execute('INSERT INTO users VALUES (?,?,?,?,?)', )
+    # con.commit()
+    c.close()
+    return signed_in
+
 
 ###### REMOVE USERNAME AND PASSWORD ARGUMENTS WHEN DONE TESTING
 def sign_in(username, password, con):
     """Sign in from existing user account"""
     # username = input('Please enter your username:\n>\t')
     # password = input('Please enter your password:\n>\t')
-
     c = con.cursor()
     query = c.execute('''SELECT * FROM users
                             WHERE username = ?
@@ -28,8 +62,7 @@ def sign_in(username, password, con):
 
 
 def new_password_username(parameter, con, signed_in):
-    """Update username or password for signed in user
-    """
+    """Update username or password for signed in user"""
     c = con.cursor()
     print(signed_in[parameter])
     new_parameter = input(f'Type a new {parameter}\n\t>>> ')
@@ -106,15 +139,29 @@ def account(signed_in, con):
             update_timeline_view(con, signed_in)
 
         elif action == 'M':
-            c = con.cursor()
-            query = c.execute('''SELECT p.user_id, username, text, timestamp
-                                 FROM posts p
-                                 INNER JOIN users u on u.user_id = p.user_id
-                                 WHERE p.user_id = ?
-                                 ORDER BY p.post_id desc''',
-                              (signed_in.user_id, ))
+            while True:
+                c = con.cursor()
+                query = c.execute('''SELECT p.user_id, post_id,
+                                     username, text, timestamp
+                                     FROM posts p
+                                     INNER JOIN users u on
+                                         u.user_id = p.user_id
+                                     WHERE p.user_id = ?
+                                     ORDER BY p.post_id desc''',
+                                  (signed_in.user_id, ))
 
-            timeline.display_posts(query, con, signed_in, 1)
+                timeline.display_posts(query, con, signed_in,
+                                       1, post_id_show=True)
 
+                print('(D) Delete Post')
+                print('(B) Back')
+                post_action = input('\n\t>>>').strip().upper()
+
+                if post_action == 'B':
+                    break
+                elif post_action == 'D':
+                    print('Enter the ID of the post you would like to delete')
+                    input_post_id = input('\n\t>>>')
+                    userdata.remove_post(con, signed_in, int(input_post_id))
         elif action == 'B':
             break

@@ -58,6 +58,16 @@ def add_post(con, post, signed_in):
     c.close()
 
 
+def remove_post(con, signed_in, input_post_id):
+    """Delete own posts"""
+    c = con.cursor()
+    c.execute('''DELETE FROM posts WHERE user_id = ?
+              AND post_id = ?''', (signed_in.user_id, input_post_id, ))
+
+    con.commit()
+    c.close()
+
+
 def add_to_list(con, user, signed_in, action):
     """Add user to following or ignoring list of signed in users"""
     c = con.cursor()
