@@ -1,4 +1,4 @@
-"""Module to handle Users page and user connections"""
+'''Module to handle Users page and user connections'''
 
 from time import sleep
 import itertools
@@ -10,13 +10,13 @@ import userdata
 
 
 def display_users(con, signed_in, page_num):
-    """Display users and user relations"""
+    '''Display users and user relations'''
     following_query = userdata.following_iter(con, signed_in)
     ignoring_query = userdata.ignoring_iter(con, signed_in)
     following_list = [i[0] for i in following_query]
     ignoring_list = [i[0] for i in ignoring_query]
 
-    user_query = userdata.user_iter(con, signed_in)
+    user_query = userdata.user_iter(con)
 
     if page_num > 0:
         start = 15 * (page_num - 1)
@@ -45,11 +45,11 @@ def display_users(con, signed_in, page_num):
 
 
 def select_user(con, action):
-    """Check for valid selected user"""
+    '''Check for valid selected user'''
     print(f'Select the user you would like to '
           f'{action} or un{action}')
     selected_user = input('\t>>> ').strip().lower()
-    user = [Box(dict(i)) for i in userdata.user_iter(con, selected_user)
+    user = [Box(dict(i)) for i in userdata.user_iter(con)
             if i[1] == selected_user.lower()][0]
     if user:
         return user
@@ -59,7 +59,7 @@ def select_user(con, action):
 
 
 def add_remove_user(user, signed_in, con, action):
-    """Add or remove user from follow or ignore list"""
+    '''Add or remove user from follow or ignore list'''
     following_query = userdata.following_iter(con, signed_in)
     ignoring_query = userdata.ignoring_iter(con, signed_in)
     following_list = (i[0] for i in following_query)
@@ -75,41 +75,45 @@ def add_remove_user(user, signed_in, con, action):
               'Remove this user from one of these lists to continue. ')
     elif user.user_id in list_:
         userdata.remove_from_list(con, user, signed_in, action)
-        print(f'=====\nNow un{action[:-1] if action.endswith("e") else action}ing '
+        print(f"=====\nNow un{action[:-1] if action.endswith('e') else action}ing "
               f'{user.username.title()}.')
     else:
         userdata.add_to_list(con, user, signed_in, action)
-        print(f'=====\nNow {action[:-1] if action.endswith("e") else action}ing '
+        print(f"=====\nNow {action[:-1] if action.endswith('e') else action}ing "
               f'{user.username.title()}.')
     sleep(1)
 
 
 def follow_or_ignore(con, signed_in, action):
-    """Function for following or ignoring user"""
+    '''Function for following or ignoring user'''
     user = select_user(con, action)
     if user:
         add_remove_user(user, signed_in, con, action)
 
 
 def prompt_for_user_profile(con):
-    """Return a profile for any user"""
-    print('Enter the username of the user you would like to view')
-    username = input('\t>>> ')
-    c = con.cursor()
-    query = c.execute('''SELECT * FROM users
-                         WHERE username = ?''', (username, ))
-
-    user = [Box(dict(x)) for x in query][0]
-    if user:
-        following_query = userdata.following_iter(con, user)
-        ignoring_query = userdata.ignoring_iter(con, user)
-        following_list = [i[1] for i in following_query]
-        ignoring_list = [i[1] for i in ignoring_query]
-    return user, following_list, ignoring_list
+    '''Return a profile for any user'''
+    while True:
+        print('Enter the username of the user you would like to view')
+        username = input('\t>>> ')
+        c = con.cursor()
+        query = c.execute('''SELECT * FROM users
+                             WHERE username = ?''', (username, ))
+        try:
+            user = [Box(dict(x)) for x in query][0]
+            if user:
+                following_query = userdata.following_iter(con, user)
+                ignoring_query = userdata.ignoring_iter(con, user)
+                following_list = [i[1] for i in following_query]
+                ignoring_list = [i[1] for i in ignoring_query]
+            return user, following_list, ignoring_list
+        except:
+            print('Something went wrong. Maybe this user does not exist?')
+            continue
 
 
 def displey_user_profile(con, signed_in, user, user_following, user_ignoring):
-    """Display user profile"""
+    '''Display user profile'''
     following_query = userdata.following_iter(con, signed_in)
     ignoring_query = userdata.ignoring_iter(con, signed_in)
     following_list = (i[0] for i in following_query)
@@ -145,7 +149,7 @@ def displey_user_profile(con, signed_in, user, user_following, user_ignoring):
 
 # in Whie loop
 def prompt_for_profile_action(con, user, signed_in):
-    """Return a profile for any user"""
+    '''Return a profile for any user'''
     print('(P) View this users posts')
     print('(F) Follow or unfollow this user')
     print('(I) Ignore or unignore this user')
@@ -174,7 +178,7 @@ def prompt_for_profile_action(con, user, signed_in):
 
 
 def user_profile(con, signed_in):
-    """Display individual user profile"""
+    '''Display individual user profile'''
     user, user_following, user_ignoring = prompt_for_user_profile(con)
     while True:
         displey_user_profile(con, signed_in, user, user_following, user_ignoring)
@@ -183,9 +187,10 @@ def user_profile(con, signed_in):
 
 
 def users_page(con, signed_in):
-    """users page"""
+    '''users page'''
     display_users(con, signed_in, 1)
     while True:
+        print('(#) Users page')
         print('(P) View users profile')
         print('(F) Follow or unfollow user')
         print('(I) Ignore or unignore user')

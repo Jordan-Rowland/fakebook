@@ -1,5 +1,6 @@
-"""Module to handle everything related to user account"""
+'''Module to handle everything related to user account'''
 
+from random import randint as r
 from time import sleep
 
 from box import Box
@@ -9,15 +10,15 @@ import userdata
 
 
 def create_account(con):
-    """Create new account"""
+    '''Create new account'''
     c = con.cursor()
     print('Please enter a new username: ')
     username = input('\t>>> ')
     users = [user[1] for user in userdata.user_iter(con)]
-    print(users)
     if username in users:
         return False
     ('Please enter a new password: ')
+    print('Please enter a password: ')
     password = input('\t>>> ')
     if not any(x.isupper for x in password) or not any(x.islower for x in password)\
     or not any(x.isdigit for x in password) or len(password) < 8: # Validate password
@@ -34,18 +35,18 @@ def create_account(con):
                      'location': location,
                      'posts_per_page': int(posts_in_timeline)})
     signed_in_tuple = tuple(dict(signed_in).values())
-    print(signed_in_tuple)
-    c.execute('INSERT INTO users VALUES (?,?,?,?,?)', )
+    c.execute('INSERT INTO users VALUES (?,?,?,?,?)', signed_in_tuple)
     # con.commit()
     c.close()
     return signed_in
 
 
 ###### REMOVE USERNAME AND PASSWORD ARGUMENTS WHEN DONE TESTING
-def sign_in(username, password, con):
-    """Sign in from existing user account"""
-    # username = input('Please enter your username:\n>\t')
-    # password = input('Please enter your password:\n>\t')
+def sign_in(con):
+# def sign_in(username, password, con):
+    '''Sign in from existing user account'''
+    username = input('Please enter your username:\n\t>>> ')
+    password = input('Please enter your password:\n\t>>> ')
     c = con.cursor()
     query = c.execute('''SELECT * FROM users
                             WHERE username = ?
@@ -54,7 +55,7 @@ def sign_in(username, password, con):
 
     for row in query:
         signed_in = Box(dict(row))
-        print(f"\nSigned in as: {signed_in.username.title()}\n")
+        print(f'\nSigned in as: {signed_in.username.title()}\n')
         c.close()
         return signed_in
     print('Please sign in as a valid user or create a new account!')
@@ -62,7 +63,7 @@ def sign_in(username, password, con):
 
 
 def new_password_username(parameter, con, signed_in):
-    """Update username or password for signed in user"""
+    '''Update username or password for signed in user'''
     c = con.cursor()
     print(signed_in[parameter])
     new_parameter = input(f'Type a new {parameter}\n\t>>> ')
@@ -94,11 +95,11 @@ def new_password_username(parameter, con, signed_in):
 
 
 def update_timeline_view(con, signed_in):
-    """Update posts per page on timeline"""
+    '''Update posts per page on timeline'''
     print(f'Currently viewing {signed_in.posts_per_page} post(s) per page.')
     sleep(1)
     print("Enter the amount of posts you'd like to see on your "
-          "timeline(Please enter a positive integer value).")
+          'timeline(Please enter a positive integer value).')
     new_posts_per_page = input('\n>>> ').strip()
 
     c = con.cursor()
@@ -121,7 +122,7 @@ def update_timeline_view(con, signed_in):
 
 
 def account(signed_in, con):
-    """Account page loop"""
+    '''Account page loop'''
     while True:
         print(f'Username: {signed_in.username} - {signed_in.location}')
         print('(U) Change Username')

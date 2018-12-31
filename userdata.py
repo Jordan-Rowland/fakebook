@@ -1,6 +1,6 @@
-""" All data logic is here. INitialize database, add posts, and return
+''' All data logic is here. INitialize database, add posts, and return
 user lists.
-"""
+'''
 
 import datetime
 import sqlite3
@@ -9,7 +9,7 @@ from box import Box
 
 
 def init():
-    """Initiate posts and users"""
+    '''Initiate posts and users'''
 
     con = sqlite3.connect('fakebook/fk.db')
     con.row_factory = sqlite3.Row
@@ -17,7 +17,7 @@ def init():
 
 
 def following_iter(con, signed_in):
-    """Returns the signed in user's following list as an iterator"""
+    '''Returns the signed in user's following list as an iterator'''
     c = con.cursor()
     following_query = c.execute('''SELECT followed_id, username
                                    FROM following f
@@ -28,7 +28,7 @@ def following_iter(con, signed_in):
 
 
 def ignoring_iter(con, signed_in):
-    """Returns the signed in user's ignoring list as an iterator"""
+    '''Returns the signed in user's ignoring list as an iterator'''
     c = con.cursor()
     ignoring_query = c.execute('''SELECT ignored_id, username
                                   FROM ignoring i
@@ -39,14 +39,14 @@ def ignoring_iter(con, signed_in):
 
 
 def user_iter(con):
-    """Returns the signed in user's ignoring list as an iterator"""
+    '''Returns the signed in user's ignoring list as an iterator'''
     c = con.cursor()
     users_query = c.execute('''SELECT * FROM users;''')
     return users_query
 
 
 def add_post(con, post, signed_in):
-    """Add new post to timeline."""
+    '''Add new post to timeline.'''
     c = con.cursor()
     c.execute('SELECT MAX(post_id) FROM posts;')
     max_post_id = Box(dict(c.fetchone())).values()[0]
@@ -59,7 +59,7 @@ def add_post(con, post, signed_in):
 
 
 def remove_post(con, signed_in, input_post_id):
-    """Delete own posts"""
+    '''Delete own posts'''
     c = con.cursor()
     c.execute('''DELETE FROM posts WHERE user_id = ?
               AND post_id = ?''', (signed_in.user_id, input_post_id, ))
@@ -69,7 +69,7 @@ def remove_post(con, signed_in, input_post_id):
 
 
 def add_to_list(con, user, signed_in, action):
-    """Add user to following or ignoring list of signed in users"""
+    '''Add user to following or ignoring list of signed in users'''
     c = con.cursor()
     query = c.execute('''SELECT max(f_id), max(i_id)
                          FROM following
@@ -92,7 +92,7 @@ def add_to_list(con, user, signed_in, action):
 
 
 def remove_from_list(con, user, signed_in, action):
-    """Remove user to following or ignoring list of signed in users"""
+    '''Remove user to following or ignoring list of signed in users'''
     c = con.cursor()
 
     if action == 'follow':
