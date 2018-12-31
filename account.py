@@ -17,7 +17,6 @@ def create_account(con):
     users = [user[1] for user in userdata.user_iter(con)]
     if username in users:
         return False
-    ('Please enter a new password: ')
     print('Please enter a password: ')
     password = input('\t>>> ')
     if not any(x.isupper for x in password) or not any(x.islower for x in password)\
