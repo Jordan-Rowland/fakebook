@@ -1,4 +1,5 @@
-''' All data logic is here. INitialize database, add posts, and return
+'''
+All data logic is here. INitialize database, add posts, and return
 user lists.
 '''
 
@@ -109,3 +110,43 @@ def remove_from_list(con, user, signed_in, action):
 
     con.commit()
     c.close()
+
+
+def insert_new_user(database_connection, user_data):
+    """Insert new user to database"""
+    cursor = database_connection.cursor()
+    cursor.execute('INSERT INTO users VALUES (?,?,?,?,?)', user_data)
+    database_connection.commit()
+    cursor.close()
+    return True
+
+
+def set_new_username(database_connection, signed_in, new_username, ):
+    cursor = database_connection.cursor()
+    cursor.execute('''UPDATE users
+                      SET username = ?
+                      WHERE user_id = ?;''',
+                   (new_username.lower(), signed_in.user_id, ))
+    cursor.close()
+
+
+def set_new_password(database_connection, signed_in, new_password, ):
+    cursor = database_connection.cursor()
+    cursor.execute('''UPDATE users
+                      SET password = ?
+                      WHERE user_id = ?;''',
+                   (new_password.lower(), signed_in.user_id, ))
+    cursor.close()
+
+
+def return_self_posts(database_connection, signed_in):
+    cursor = database_connection.cursor()
+    query = cursor.execute('''SELECT p.user_id, post_id,
+                         username, text, timestamp
+                         FROM posts p
+                         INNER JOIN users u on
+                             u.user_id = p.user_id
+                         WHERE p.user_id = ?
+                         ORDER BY p.post_id desc''',
+                      (signed_in.user_id, ))
+    cursor.close()

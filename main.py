@@ -12,34 +12,36 @@ def main():
     '''Main function that runs the loop state for entire program'''
     con = userdata.init()
 
-    initializing = True
-    while initializing:
-        print('Press (N) to create a new account or (S) to '
-              'sign into an existing account. Press (X) to exit.')
-        action = input('\t>>> ').strip().upper()
-        if action == 'N':
-            signed_in = account.create_account(con)
-            if signed_in:
-                initializing = False
-            else:
-                continue
-        elif action == 'S':
-            signed_in = account.sign_in(con)
-            if signed_in:
-                break
-            else:
-                continue
-        elif action == 'X':
-            sys.exit()
-        print('Not a valid operation')
+    # initializing = True
+    # while initializing:
+    #     print('Press (N) to create a new account or (S) to '
+    #           'sign into an existing account. Press (X) to exit.')
+    #     action = input('\t==> ').strip().upper()
+    #     if action == 'N':
+    #         signed_in = account.create_account(con)
+    #         if signed_in:
+    #             initializing = False
+    #         else:
+    #             continue
+    #     elif action == 'S':
+    #         signed_in = account.sign_in(con)
+    #         if signed_in:
+    #             break
+    #         else:
+    #             continue
+    #     elif action == 'X':
+    #         # print('Bye!')
+    #         sys.exit()
+    #     print('Not a valid operation')
 
-    # signed_in = account.sign_in('jordan00', 'jr11', con)
+    signed_in = account.sign_in('jordan00', 'jr11', con)
     timeline.timeline(con, signed_in, 1)
 
     while True:
         action = timeline.prompt_for_action()
         if action == 'SIGN OUT':
             con.close()
+            print('Bye!')
             break
         elif action.isdigit():
             action = int(action)

@@ -17,7 +17,7 @@ def prompt_for_action():
         print('> (U) Users')
         print('> (P) Post')
         print('> (O) Sign Out')
-        action = input('\nSelect an action\n\t>>> ').strip().upper()
+        action = input('\nSelect an action\n\t==> ').strip().upper()
 
         options = {'A': 'ACCOUNT SETTINGS',
                    'U': 'USERS',

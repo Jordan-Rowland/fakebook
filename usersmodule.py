@@ -48,7 +48,7 @@ def select_user(con, action):
     '''Check for valid selected user'''
     print(f'Select the user you would like to '
           f'{action} or un{action}')
-    selected_user = input('\t>>> ').strip().lower()
+    selected_user = input('\t==> ').strip().lower()
     user = [Box(dict(i)) for i in userdata.user_iter(con)
             if i[1] == selected_user.lower()][0]
     if user:
@@ -95,7 +95,7 @@ def prompt_for_user_profile(con):
     '''Return a profile for any user'''
     while True:
         print('Enter the username of the user you would like to view')
-        username = input('\t>>> ')
+        username = input('\t==> ')
         c = con.cursor()
         query = c.execute('''SELECT * FROM users
                              WHERE username = ?''', (username, ))
@@ -150,11 +150,11 @@ def displey_user_profile(con, signed_in, user, user_following, user_ignoring):
 # in Whie loop
 def prompt_for_profile_action(con, user, signed_in):
     '''Return a profile for any user'''
-    print('(P) View this users posts')
-    print('(F) Follow or unfollow this user')
-    print('(I) Ignore or unignore this user')
-    print('(B) Back')
-    action = input('>>> ').strip().upper()
+    print('> (P) View this users posts')
+    print('> (F) Follow or unfollow this user')
+    print('> (I) Ignore or unignore this user')
+    print('> (B) Back')
+    action = input('==> ').strip().upper()
 
     if action == 'B':
         return 'BREAK' # Break the loop from the user_profile function
@@ -190,13 +190,13 @@ def users_page(con, signed_in):
     '''users page'''
     display_users(con, signed_in, 1)
     while True:
-        print('(#) Users page')
-        print('(P) View users profile')
-        print('(F) Follow or unfollow user')
-        print('(I) Ignore or unignore user')
-        print('(B) Back')
+        print('> (#) Users page')
+        print('> (P) View users profile')
+        print('> (F) Follow or unfollow user')
+        print('> (I) Ignore or unignore user')
+        print('> (B) Back')
         print('Select an action')
-        action = input('\t>>> ').strip().upper()
+        action = input('\t==> ').strip().upper()
 
         if action == 'B':
             break
