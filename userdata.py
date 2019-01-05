@@ -149,4 +149,4 @@ def return_self_posts(database_connection, signed_in):
                          WHERE p.user_id = ?
                          ORDER BY p.post_id desc''',
                       (signed_in.user_id, ))
-    cursor.close()
+    return query
