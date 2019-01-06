@@ -5,42 +5,70 @@ import itertools
 
 from box import Box
 
-import timeline
+import userinterface
 import userdata
 
 
-def display_users(con, signed_in, page_num):
-    '''Display users and user relations'''
-    following_query = userdata.following_iter(con, signed_in)
-    ignoring_query = userdata.ignoring_iter(con, signed_in)
-    following_list = [i[0] for i in following_query]
-    ignoring_list = [i[0] for i in ignoring_query]
+def display_no_posts_on_page():
+    print('\n=====\n')
+    print(f'No posts on page {page_num}. Please go back a page.')
+    print('\n=====\n')
 
-    user_query = userdata.user_iter(con)
 
+def display_users_and_relations(query, following_list, ignoring_list):
+    print('\n=====\n')
+    for user in query:
+        user = Box(dict(user))
+        if user.user_id in following_list:
+            print(f'{user.username.title()} (following)')
+        elif user.user_id in ignoring_list:
+            print(f'{user.username.title()} (ignoring)')
+        else:
+            print(f'{user.username.title()}')
+    print('\n=====\n')
+
+
+def users_page_number_display(user_list_query, page_num):
     if page_num > 0:
         start = 15 * (page_num - 1)
         end = 15 * page_num
-        user_query_gen = (row for row in user_query) # Generator out of iterable
-        results = itertools.islice(user_query_gen, start, end)
-        query = list(results)
+        user_list_gen = (row for row in user_list_query)
+        results_slice = itertools.islice(user_list_gen, start, end)
+        results = list(results_slice)
+    return results
 
-    if not query:
-        print('\n=====\n')
-        print(f'No posts on page {page_num}. Please go back a page.')
-        print('\n=====\n')
 
+def user_following_ignoring(database_connection, signed_in,
+                            index=0, to_list=False):
+    following_query = userdata.following_iter(database_connection, signed_in)
+    ignoring_query = userdata.ignoring_iter(database_connection, signed_in)
+
+    if to_list:
+        following_list = [i[index] for i in following_query]
+        ignoring_list = [i[index] for i in ignoring_query]
+        return following_list, ignoring_list
+
+    following_list = (i[index] for i in following_query)
+    ignoring_list = (i[index] for i in ignoring_query)
+    return following_list, ignoring_list
+
+
+def display_users(database_connection, signed_in, page_num):
+    """Display users and user relations"""
+    (following_list,
+         ignoring_list) = user_following_ignoring(database_connection,
+                                                  signed_in, to_list=True)
+    user_list_query = userdata.user_data_iter(database_connection)
+    # users_page = users_page_number_display(user_list_query, page_num)
+
+    users_page = userinterface.page_number_display('users',
+                                                   user_list_query,
+                                                   signed_in,
+                                                   page_num)
+    if not users_page:
+        display_no_posts_on_page()
     else:
-        print('\n=====\n')
-        for user in query:
-            user = Box(dict(user))
-            if user.user_id in following_list:
-                print(f'{user.username.title()} (following)')
-            elif user.user_id in ignoring_list:
-                print(f'{user.username.title()} (ignoring)')
-            else:
-                print(f'{user.username.title()}')
-        print('\n=====\n')
+        display_users_and_relations(users_page, following_list, ignoring_list)
         # sleep(.5)
 
 
@@ -49,22 +77,21 @@ def select_user(con, action):
     print(f'Select the user you would like to '
           f'{action} or un{action}')
     selected_user = input('\t==> ').strip().lower()
-    user = [Box(dict(i)) for i in userdata.user_iter(con)
-            if i[1] == selected_user.lower()][0]
-    if user:
+    try:
+        user = [Box(dict(i)) for i in userdata.user_data_iter(con)
+                if i[1] == selected_user.lower()][0]
         return user
-    print('This user does not exist.')
-    sleep(1)
-    return False
+    except IndexError:
+        print('This user does not exist.')
+        sleep(1)
+        return False
 
 
-def add_remove_user(user, signed_in, con, action):
-    '''Add or remove user from follow or ignore list'''
-    following_query = userdata.following_iter(con, signed_in)
-    ignoring_query = userdata.ignoring_iter(con, signed_in)
-    following_list = (i[0] for i in following_query)
-    ignoring_list = (i[0] for i in ignoring_query)
-
+def add_remove_user(user, signed_in, database_connection, action):
+    """Add or remove user from follow or ignore list"""
+    (following_list,
+         ignoring_list) = user_following_ignoring(database_connection,
+                                                            signed_in)
     if action == 'follow':
         list_, second_list_ = following_list, ignoring_list
     elif action == 'ignore':
@@ -74,62 +101,43 @@ def add_remove_user(user, signed_in, con, action):
         print('User cannot be ignored and followed at the same time.\n'
               'Remove this user from one of these lists to continue. ')
     elif user.user_id in list_:
-        userdata.remove_from_list(con, user, signed_in, action)
+        userdata.remove_from_list(database_connection, user, signed_in, action)
         print(f"=====\nNow un{action[:-1] if action.endswith('e') else action}ing "
               f'{user.username.title()}.')
     else:
-        userdata.add_to_list(con, user, signed_in, action)
+        userdata.add_to_list(database_connection, user, signed_in, action)
         print(f"=====\nNow {action[:-1] if action.endswith('e') else action}ing "
               f'{user.username.title()}.')
     sleep(1)
 
 
-def follow_or_ignore(con, signed_in, action):
-    '''Function for following or ignoring user'''
-    user = select_user(con, action)
+def follow_or_ignore(database_connection, signed_in, action):
+    """Follow or ignor user."""
+    user = select_user(database_connection, action)
     if user:
-        add_remove_user(user, signed_in, con, action)
+        add_remove_user(user, signed_in, database_connection, action)
 
 
-def prompt_for_user_profile(con):
-    '''Return a profile for any user'''
+def prompt_for_user_profile(database_connection, signed_in):
+    """Return a profile for any user"""
     while True:
-        print('Enter the username of the user you would like to view')
-        username = input('\t==> ')
-        c = con.cursor()
-        query = c.execute('''SELECT * FROM users
-                             WHERE username = ?''', (username, ))
+        user_row = userdata.get_user_data(database_connection)
         try:
-            user = [Box(dict(x)) for x in query][0]
-            if user:
-                following_query = userdata.following_iter(con, user)
-                ignoring_query = userdata.ignoring_iter(con, user)
-                following_list = [i[1] for i in following_query]
-                ignoring_list = [i[1] for i in ignoring_query]
-            return user, following_list, ignoring_list
-        except:
+            user = [Box(dict(x)) for x in user_row][0]
+        except IndexError:
             print('Something went wrong. Maybe this user does not exist?')
             continue
+        (following_list_usernames,
+        ignoring_list_usernames) = user_following_ignoring(
+                                    database_connection,
+                                    signed_in,
+                                    index=1,
+                                    to_list=True)
+        return user, following_list_usernames, ignoring_list_usernames
 
 
-def displey_user_profile(con, signed_in, user, user_following, user_ignoring):
-    '''Display user profile'''
-    following_query = userdata.following_iter(con, signed_in)
-    ignoring_query = userdata.ignoring_iter(con, signed_in)
-    following_list = (i[0] for i in following_query)
-    ignoring_list = (i[0] for i in ignoring_query)
-
-    print('\n=====\n')
-    if user.user_id in following_list:
-        print(f'Username: {user.username.title()} - Following')
-    elif user.user_id in ignoring_list:
-        print(f'Username: {user.username.title()} - Ignoring')
-    else:
-        print(f'Username: {user.username.title()}')
-
-    print(f'Location: {user.location}\n')
-    # print(f'Bio: {user.biography}')
-
+def display_profile_following_list(user_following):
+    """Display users following list"""
     print('Following: ')
     if user_following:
         for followed_user in user_following:
@@ -137,6 +145,9 @@ def displey_user_profile(con, signed_in, user, user_following, user_ignoring):
     else:
         print('\tNot following any users.')
 
+
+def display_profile_ignoring_list(user_ignoring):
+    """Display users ignoring list"""
     print('Ignoring: ')
     if user_ignoring:
         for followed_user in user_ignoring:
@@ -144,51 +155,94 @@ def displey_user_profile(con, signed_in, user, user_following, user_ignoring):
     else:
         print('\tNot ignoring any users')
 
+
+def display_if_following_or_ignoring_profile(user, following_list,
+                                             ignoring_list):
+    """Display users following or ignoring status"""
+    if user.user_id in following_list:
+        print(f'Username: {user.username.title()} - Following')
+    elif user.user_id in ignoring_list:
+        print(f'Username: {user.username.title()} - Ignoring')
+    else:
+        print(f'Username: {user.username.title()}')
+
+
+def displey_user_profile(database_connection, signed_in, user,
+                         user_following, user_ignoring):
+    """Display user profile"""
+    (following_list,
+    ignoring_list) = user_following_ignoring(database_connection,
+                                             signed_in, to_list=True)
+    print('\n=====\n')
+    display_if_following_or_ignoring_profile(user, following_list, ignoring_list)
+    print(f'Location: {user.location}\n')
+    # print(f'Bio: {user.biography}')
+    display_profile_following_list(user_following)
+    display_profile_ignoring_list(user_ignoring)
     print('\n=====\n')
 
 
-# in Whie loop
-def prompt_for_profile_action(con, user, signed_in):
-    '''Return a profile for any user'''
+def prompt_for_profile_action(database_connection, user, signed_in):
+    """Return a profile for any user"""
     print('> (P) View this users posts')
     print('> (F) Follow or unfollow this user')
     print('> (I) Ignore or unignore this user')
     print('> (B) Back')
     action = input('==> ').strip().upper()
-
     if action == 'B':
         return 'BREAK' # Break the loop from the user_profile function
     if action == 'P':
-        c = con.cursor()
-        query = c.execute('''SELECT p.user_id, username, text, timestamp
-                             FROM posts p
-                             INNER JOIN users u on u.user_id = p.user_id
-                             WHERE p.user_id = ?
-                             ORDER BY p.post_id desc''', (user.user_id, ))
-
-        timeline.display_posts(query, con, signed_in, 1)
+        posts = userdata.raw_users_posts(database_connection, user)
+        userinterface.display_posts(posts, database_connection,
+                                    signed_in, page_num=1)
         sleep(1)
-
     elif action == 'F':
-        add_remove_user(user, signed_in, con, 'follow')
+        add_remove_user(user, signed_in, database_connection, 'follow')
     elif action == 'I':
-        add_remove_user(user, signed_in, con, 'ignore')
+        add_remove_user(user, signed_in, database_connection, 'ignore')
     else:
         print('Please select a valid option')
 
 
 def user_profile(con, signed_in):
-    '''Display individual user profile'''
-    user, user_following, user_ignoring = prompt_for_user_profile(con)
+    """Display individual user profile"""
+    (user,
+     user_following,
+     user_ignoring) = prompt_for_user_profile(con, signed_in)
     while True:
         displey_user_profile(con, signed_in, user, user_following, user_ignoring)
         if prompt_for_profile_action(con, user, signed_in) == 'BREAK':
             break
 
 
-def users_page(con, signed_in):
-    '''users page'''
-    display_users(con, signed_in, 1)
+def user_page_action(action, database_connection, signed_in):
+    """Accept action from user page"""
+    if action == 'B':
+        return 'BREAK'
+    elif action.isdigit():
+        action = int(action)
+        if action:
+            display_users(database_connection, signed_in, action)
+        else:
+            print('-' * 50)
+            print('No users on page 0. Please go to page 1.')
+            print('-' * 50)
+    elif action == 'P':
+        user_profile(database_connection, signed_in)
+        display_users(database_connection, signed_in, 1)
+    elif action == 'F':
+        follow_or_ignore(database_connection, signed_in, 'follow')
+        display_users(database_connection, signed_in, 1)
+    elif action == 'I':
+        follow_or_ignore(database_connection, signed_in, 'ignore')
+        display_users(database_connection, signed_in, 1)
+    else:
+        print('Please enter a valid option')
+
+
+def users_main_page(database_connection, signed_in):
+    """users page to view and interact with other users"""
+    display_users(database_connection, signed_in, 1)
     while True:
         print('> (#) Users page')
         print('> (P) View users profile')
@@ -198,26 +252,5 @@ def users_page(con, signed_in):
         print('Select an action')
         action = input('\t==> ').strip().upper()
 
-        if action == 'B':
+        if user_page_action(action, database_connection, signed_in) == 'BREAK':
             break
-
-        elif action.isdigit():
-            action = int(action)
-            if action:
-                display_users(con, signed_in, action)
-            else:
-                print('-' * 50)
-                print('No users on page 0. Please go to page 1.')
-                print('-' * 50)
-
-        elif action == 'P':
-            user_profile(con, signed_in)
-            display_users(con, signed_in, 1)
-        elif action == 'F':
-            follow_or_ignore(con, signed_in, 'follow')
-            display_users(con, signed_in, 1)
-        elif action == 'I':
-            follow_or_ignore(con, signed_in, 'ignore')
-            display_users(con, signed_in, 1)
-        else:
-            print('Please enter a valid option')
