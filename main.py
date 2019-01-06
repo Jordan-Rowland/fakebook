@@ -1,7 +1,5 @@
 """Main page, do not import this"""
 
-import sys
-
 import userdata
 import usersmodule
 import account
@@ -12,15 +10,15 @@ def main():
     """Main function that runs the loop state for entire program"""
     database_connection = userdata.init()
 
-    # initializing = True
-    # while initializing:
+    signed_in = account.sign_in_or_create_user(database_connection)
+    # while True:
     #     print('Press (N) to create a new account or (S) to '
     #           'sign into an existing account. Press (X) to exit.')
     #     action = input('\t==> ').strip().upper()
     #     if action == 'N':
     #         signed_in = account.create_account(database_connection)
     #         if signed_in:
-    #             initializing = False
+    #             break
     #         else:
     #             continue
     #     elif action == 'S':
@@ -34,7 +32,7 @@ def main():
     #         sys.exit()
     #     print('Not a valid operation')
 
-    signed_in = account.sign_in('jordan00', 'Jordan!23', database_connection)
+    # signed_in = account.sign_in('jordan00', 'Jordan!23', database_connection)
     timeline.timeline(database_connection, signed_in, 1)
 
     while True:

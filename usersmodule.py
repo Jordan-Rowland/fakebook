@@ -1,7 +1,6 @@
-'''Module to handle Users page and user connections'''
+"""Module to handle Users page and user connections"""
 
 from time import sleep
-import itertools
 
 from box import Box
 
@@ -9,13 +8,16 @@ import userinterface
 import userdata
 
 
-def display_no_posts_on_page():
+def display_no_posts_on_page(page_num):
+    """Display on pages with no posts"""
     print('\n=====\n')
     print(f'No posts on page {page_num}. Please go back a page.')
     print('\n=====\n')
 
 
 def display_users_and_relations(query, following_list, ignoring_list):
+    """Tell signed in user if other users on user page are being
+    followed or ignored by their account"""
     print('\n=====\n')
     for user in query:
         user = Box(dict(user))
@@ -28,20 +30,22 @@ def display_users_and_relations(query, following_list, ignoring_list):
     print('\n=====\n')
 
 
-def users_page_number_display(user_list_query, page_num):
-    if page_num > 0:
-        start = 15 * (page_num - 1)
-        end = 15 * page_num
-        user_list_gen = (row for row in user_list_query)
-        results_slice = itertools.islice(user_list_gen, start, end)
-        results = list(results_slice)
-    return results
+# def users_page_number_display(user_list_query, page_num):
+#     if page_num > 0:
+#         start = 15 * (page_num - 1)
+#         end = 15 * page_num
+#         user_list_gen = (row for row in user_list_query)
+#         results_slice = itertools.islice(user_list_gen, start, end)
+#         results = list(results_slice)
+#     return results
 
 
-def user_following_ignoring(database_connection, signed_in,
+def user_following_ignoring(database_connection, user,
                             index=0, to_list=False):
-    following_query = userdata.following_iter(database_connection, signed_in)
-    ignoring_query = userdata.ignoring_iter(database_connection, signed_in)
+    """Return list of users being followed or ignored by
+    specified user"""
+    following_query = userdata.following_iter(database_connection, user)
+    ignoring_query = userdata.ignoring_iter(database_connection, user)
 
     if to_list:
         following_list = [i[index] for i in following_query]
@@ -56,8 +60,8 @@ def user_following_ignoring(database_connection, signed_in,
 def display_users(database_connection, signed_in, page_num):
     """Display users and user relations"""
     (following_list,
-         ignoring_list) = user_following_ignoring(database_connection,
-                                                  signed_in, to_list=True)
+     ignoring_list) = user_following_ignoring(database_connection,
+                                              signed_in, to_list=True)
     user_list_query = userdata.user_data_iter(database_connection)
     # users_page = users_page_number_display(user_list_query, page_num)
 
@@ -66,19 +70,20 @@ def display_users(database_connection, signed_in, page_num):
                                                    signed_in,
                                                    page_num)
     if not users_page:
-        display_no_posts_on_page()
+        display_no_posts_on_page(page_num)
     else:
         display_users_and_relations(users_page, following_list, ignoring_list)
         # sleep(.5)
 
 
-def select_user(con, action):
-    '''Check for valid selected user'''
+def select_user(database_connection, action):
+    """Check for valid selected user"""
     print(f'Select the user you would like to '
           f'{action} or un{action}')
     selected_user = input('\t==> ').strip().lower()
     try:
-        user = [Box(dict(i)) for i in userdata.user_data_iter(con)
+        user = [Box(dict(i)) for i in
+                userdata.user_data_iter(database_connection)
                 if i[1] == selected_user.lower()][0]
         return user
     except IndexError:
@@ -90,8 +95,8 @@ def select_user(con, action):
 def add_remove_user(user, signed_in, database_connection, action):
     """Add or remove user from follow or ignore list"""
     (following_list,
-         ignoring_list) = user_following_ignoring(database_connection,
-                                                            signed_in)
+     ignoring_list) = user_following_ignoring(database_connection,
+                                              signed_in)
     if action == 'follow':
         list_, second_list_ = following_list, ignoring_list
     elif action == 'ignore':
@@ -128,11 +133,12 @@ def prompt_for_user_profile(database_connection, signed_in):
             print('Something went wrong. Maybe this user does not exist?')
             continue
         (following_list_usernames,
-        ignoring_list_usernames) = user_following_ignoring(
-                                    database_connection,
-                                    signed_in,
-                                    index=1,
-                                    to_list=True)
+         ignoring_list_usernames) = user_following_ignoring(
+             database_connection,
+             signed_in,
+             index=1,
+             to_list=True)
+
         return user, following_list_usernames, ignoring_list_usernames
 
 
@@ -171,8 +177,8 @@ def displey_user_profile(database_connection, signed_in, user,
                          user_following, user_ignoring):
     """Display user profile"""
     (following_list,
-    ignoring_list) = user_following_ignoring(database_connection,
-                                             signed_in, to_list=True)
+     ignoring_list) = user_following_ignoring(database_connection,
+                                              signed_in, to_list=True)
     print('\n=====\n')
     display_if_following_or_ignoring_profile(user, following_list, ignoring_list)
     print(f'Location: {user.location}\n')
@@ -219,7 +225,8 @@ def user_page_action(action, database_connection, signed_in):
     """Accept action from user page"""
     if action == 'B':
         return 'BREAK'
-    elif action.isdigit():
+    if action.isdigit():
+        # Test this without this weird logic
         action = int(action)
         if action:
             display_users(database_connection, signed_in, action)

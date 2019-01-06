@@ -43,17 +43,16 @@ def page_number_display(posts_or_users, raw_data, signed_in, page_num):
             query_gen = (row for row in raw_data)
             results_slice = itertools.islice(query_gen, start_post, end_post)
             results_page = list(results_slice)
-        return results_page
+            return results_page
 
     if posts_or_users == 'users':
-            if page_num > 0:
+        if page_num > 0:
             start = 15 * (page_num - 1)
             end = 15 * page_num
             user_list_gen = (row for row in raw_data)
             results_slice = itertools.islice(user_list_gen, start, end)
             results = list(results_slice)
-        return results
-
+            return results
 
 
 def display_posts(validated_posts, database_connection, signed_in,

@@ -1,11 +1,7 @@
-'''Module to handle all details related to Timeline view'''
+"""Module to handle all details related to Timeline view"""
 
-import itertools
 # from math import floor
 
-from box import Box
-
-import userdata
 import userinterface
 
 
@@ -41,7 +37,7 @@ def timeline(database_connection, signed_in, page_num):
             # if page_num <= max_page:
     print(f'\nTimeline: page {page_num}')
     validated_posts = userinterface.validate_posts(database_connection,
-                                                  signed_in)
+                                                   signed_in)
     userinterface.display_posts(validated_posts,
                                 database_connection,
                                 signed_in, page_num)
