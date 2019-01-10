@@ -10,7 +10,7 @@ import userdata
 import userinterface
 
 
-def verify_username(database_connection, username, new_user=False):
+def verify_username(database_connection, username, new_user):
     """Verify username for new or existing users"""
     existing_usernames = (user[1] for user in
                           userdata.user_data_iter(
@@ -26,9 +26,9 @@ def verify_username(database_connection, username, new_user=False):
 
 def ask_and_verify_username(database_connection, new_user=False):
     """Ask for a verify user on log in or account creation"""
-    username = userinterface.ask_for('Please enter a new username.')
+    username = userinterface.ask_for(f'Please enter a username.')
     username_verified = verify_username(database_connection,
-                                        username, new_user=True)
+                                        username, new_user)
     if not username_verified:
         return False
     return username
@@ -45,13 +45,13 @@ def verify_new_password(password):
     has_upper_char = any(x.isupper() for x in password)
     has_lower_char = any(x.islower() for x in password)
     has_digit_char = any(x.isdigit() for x in password)
-    long_enough = len(password) < 8
+    long_enough = len(password) > 8
 
-    if not has_upper_char and not has_lower_char \
-    and not has_digit_char and not long_enough:
-        print('Password not strong enough!')
-        return False
-    return True
+    if has_upper_char and has_lower_char and has_digit_char and long_enough:
+        return True
+
+    print('Password not strong enough!')
+    return False
 
 
 def ask_and_verify_password():
@@ -82,26 +82,29 @@ def verify_number(number):
     return False
 
 
-def ask_and_verify_timeline_preferences():
-    """Ask for timeline post count, and verify input is a number"""
-    post_number = ask_timeline_preferences()
-    post_number_verified = verify_number(post_number)
+# def ask_and_verify_timeline_preferences():
+#     """Ask for timeline post count, and verify input is a number"""
+#     post_number = ask_timeline_preferences()
+#     post_number_verified = verify_number(post_number)
 
-    if not post_number_verified:
-        return False
-    return post_number
+#     if not post_number_verified:
+#         print('You must enter a number!')
+#         return False
+#     return post_number
 
 
 def validate_user_sign_in(database_connection, username, password):
     """Check user information against database"""
+    if not username:
+        return False
     cursor = database_connection.cursor()
     query = cursor.execute('''SELECT * FROM users
                               WHERE username = ?
                               AND password = ?''',
                            (username.lower(), password, ))
-
-    if query:
-        signed_in = [Box(dict(row)) for row in query][0]
+    user = [Box(dict(row)) for row in query]
+    if user:
+        signed_in = user[0]
         print(f'\nSigned in as: {signed_in.username.title()}\n')
         cursor.close()
         return signed_in
@@ -124,14 +127,18 @@ def confirm_new_user_added_to_database(user_data, database_connection,
 
 def create_account(database_connection):
     """Create a new user account"""
-    username = ask_and_verify_username(database_connection, new_user=True)
+    username  = ask_and_verify_username(database_connection, new_user=True)
+    if not username:
+        return False
     password = ask_and_verify_password()
+    if not password:
+        return False
     user_id = generate_user_id(username)
     location = userinterface.ask_for('Please enter your location')
-    post_number = ask_and_verify_timeline_preferences()
+    # post_number = ask_and_verify_timeline_preferences()
 
     user_data = (user_id, username, password,
-                 location, post_number)
+                 location, 6)
     if not all(user_data):
         print('Something went wrong! Unable to create account.')
         return False
@@ -144,7 +151,10 @@ def create_account(database_connection):
 # def sign_in(username, password, database_connection):
 def sign_in(database_connection):
     """Sign in from existing user account"""
-    username = ask_and_verify_username(database_connection)
+    username  = ask_and_verify_username(database_connection, new_user=False)
+    if not username:
+        print('Username does not exist')
+        return False
     password = userinterface.ask_for('Please enter your password.')
     signed_in = validate_user_sign_in(database_connection,
                                       username, password)
@@ -197,6 +207,8 @@ def new_password_setup(database_connection, signed_in):
             userdata.set_new_password(database_connection, signed_in,
                                       new_password=new_password)
             signed_in.password = new_password
+            print('Password changed!')
+
 
 
 def new_username_setup(database_connection, signed_in):

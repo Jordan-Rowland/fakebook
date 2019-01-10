@@ -8,11 +8,11 @@ import userinterface
 import userdata
 
 
-def display_no_posts_on_page(page_num):
+def display_no_users_on_page(page_num):
     """Display on pages with no posts"""
-    print('\n=====\n')
-    print(f'No posts on page {page_num}. Please go back a page.')
-    print('\n=====\n')
+    print('-' * 50)
+    print(f'No users on page {page_num}. Please go back a page.')
+    print('-' * 50)
 
 
 def display_users_and_relations(query, following_list, ignoring_list):
@@ -28,16 +28,6 @@ def display_users_and_relations(query, following_list, ignoring_list):
         else:
             print(f'{user.username.title()}')
     print('\n=====\n')
-
-
-# def users_page_number_display(user_list_query, page_num):
-#     if page_num > 0:
-#         start = 15 * (page_num - 1)
-#         end = 15 * page_num
-#         user_list_gen = (row for row in user_list_query)
-#         results_slice = itertools.islice(user_list_gen, start, end)
-#         results = list(results_slice)
-#     return results
 
 
 def user_following_ignoring(database_connection, user,
@@ -63,14 +53,12 @@ def display_users(database_connection, signed_in, page_num):
      ignoring_list) = user_following_ignoring(database_connection,
                                               signed_in, to_list=True)
     user_list_query = userdata.user_data_iter(database_connection)
-    # users_page = users_page_number_display(user_list_query, page_num)
-
     users_page = userinterface.page_number_display('users',
                                                    user_list_query,
                                                    signed_in,
                                                    page_num)
     if not users_page:
-        display_no_posts_on_page(page_num)
+        display_no_users_on_page(page_num)
     else:
         display_users_and_relations(users_page, following_list, ignoring_list)
         # sleep(.5)

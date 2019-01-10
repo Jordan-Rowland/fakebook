@@ -36,8 +36,8 @@ def validate_posts(database_connection, signed_in):
 
 def page_number_display(posts_or_users, raw_data, signed_in, page_num):
     """Calculate how many users or posts are displayed per page"""
-    if posts_or_users == 'posts':
-        if page_num > 0:
+    if page_num > 0:
+        if posts_or_users == 'posts':
             start_post = signed_in.posts_per_page * (page_num - 1)
             end_post = signed_in.posts_per_page * page_num
             query_gen = (row for row in raw_data)
@@ -45,8 +45,7 @@ def page_number_display(posts_or_users, raw_data, signed_in, page_num):
             results_page = list(results_slice)
             return results_page
 
-    if posts_or_users == 'users':
-        if page_num > 0:
+        if posts_or_users == 'users':
             start = 15 * (page_num - 1)
             end = 15 * page_num
             user_list_gen = (row for row in raw_data)
@@ -55,15 +54,15 @@ def page_number_display(posts_or_users, raw_data, signed_in, page_num):
             return results
 
 
-def display_posts(validated_posts, database_connection, signed_in,
-                  page_num, post_id_show=False):
+def display_posts(validated_posts, database_connection,
+                  signed_in, page_num, post_id_show=False):
     """Display posts in a pretty format. Posts are based on page number
     and and number of posts per page in user timeline. This function
     uses a generator and islice from itertools to return a slice of
     posts per page.
     """
     following_query = userdata.following_iter(database_connection, signed_in)
-    following_list = (i[0] for i in following_query)
+    following_list = [i[0] for i in following_query]
     results_page = page_number_display('posts',
                                        validated_posts,
                                        signed_in,
